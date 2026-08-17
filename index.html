@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copiadora Grafiplot - Sistema de Seguimiento QR</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Icons (Lucide) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- QRCode.js CDN for label printing & visual codes -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  
+  <!-- Html5Qrcode Reader CDN -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app" class="app-container">
+    
+    <!-- HEADER & NAVBAR -->
+    <header class="app-header">
+      <div class="header-content">
+        <a href="#jobs" class="brand-logo" id="logo-btn">
+          <div class="logo-icon">
+            <i data-lucide="qr-code"></i>
+          </div>
+          <div class="logo-text">
+            <span class="brand-name">GRAFIPLOT</span>
+            <span class="brand-sub">Sistema de Seguimiento QR</span>
+          </div>
+        </a>
+
+        <!-- Connection Status Badge -->
+        <div class="status-badge-container">
+          <button id="supabase-status-btn" class="status-pill status-connecting" title="Estado de la conexión a Supabase">
+            <span class="status-dot"></span>
+            <span id="supabase-status-text">Conectando...</span>
+          </button>
+        </div>
+
+        <!-- Right Controls -->
+        <div class="header-actions">
+          <button id="open-config-btn" class="btn-icon" title="Configurar Supabase / Cuenta">
+            <i data-lucide="settings"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="app-nav">
+        <a href="#jobs" class="nav-item active" data-view="jobs">
+          <i data-lucide="layout-grid"></i>
+          <span>Trabajos</span>
+        </a>
+        <a href="#scanner" class="nav-item" data-view="scanner">
+          <i data-lucide="scan"></i>
+          <span>Escanear QR</span>
+        </a>
+        <a href="#qr-generator" class="nav-item" data-view="qr-generator">
+          <i data-lucide="printer"></i>
+          <span>Generar QR</span>
+        </a>
+        <a href="#customers" class="nav-item" data-view="customers">
+          <i data-lucide="users"></i>
+          <span>Clientes</span>
+        </a>
+      </nav>
+    </header>
+
+    <!-- MAIN CONTENT VIEWS -->
+    <main class="app-main">
+      
+      <!-- 1. VIEW: TOKEN DETAILED PAGE / ROUTE /t/{token} -->
+      <section id="view-token" class="app-view hidden">
+        <div class="view-header">
+          <div class="token-title-area">
+            <button id="back-to-jobs-btn" class="btn btn-secondary btn-sm">
+              <i data-lucide="arrow-left"></i> Volver a Lista
+            </button>
+            <h2>Ficha del Código QR: <span id="token-code-display" class="badge-token">--------</span></h2>
+          </div>
+        </div>
+
+        <div id="token-content-area" class="token-content-card">
+          <!-- Dynamically populated: Unused state banner OR Assigned Job Card -->
+        </div>
+      </section>
+
+      <!-- 2. VIEW: JOBS CENTER (ALL JOBS LIST & FILTERS) -->
+      <section id="view-jobs" class="app-view">
+        <div class="jobs-controls-bar">
+          <div class="search-input-wrapper">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="jobs-search-input" placeholder="Buscar por cliente, teléfono, token o descripción..." autocomplete="off">
+            <button id="clear-search-btn" class="btn-clear hidden">&times;</button>
+          </div>
+
+          <button id="new-job-manual-btn" class="btn btn-primary">
+            <i data-lucide="plus"></i> Nuevo Trabajo
+          </button>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="all">Todos (<span id="count-all">0</span>)</button>
+          <button class="filter-tab" data-filter="received">Recibidos (<span id="count-received">0</span>)</button>
+          <button class="filter-tab" data-filter="in_progress">En Proceso (<span id="count-in_progress">0</span>)</button>
+          <button class="filter-tab" data-filter="ready">Listos (<span id="count-ready">0</span>)</button>
+          <button class="filter-tab" data-filter="delivered">Entregados (<span id="count-delivered">0</span>)</button>
+        </div>
+
+        <!-- Jobs Grid / List -->
+        <div id="jobs-list" class="jobs-grid">
+          <!-- Dynamically populated job cards -->
+        </div>
+
+        <div id="jobs-empty-state" class="empty-state hidden">
+          <i data-lucide="folder-open" class="empty-icon"></i>
+          <h3>No se encontraron trabajos</h3>
+          <p>No hay trabajos registrados que coincidan con la búsqueda o el filtro seleccionado.</p>
+        </div>
+      </section>
+
+      <!-- 3. VIEW: CAMERA QR SCANNER -->
+      <section id="view-scanner" class="app-view hidden">
+        <div class="scanner-card">
+          <div class="scanner-header">
+            <h3><i data-lucide="camera"></i> Escáner de Código QR</h3>
+            <p>Apunta la cámara de tu teléfono o laptop al código QR de la boleta o etiqueta física.</p>
+          </div>
+
+          <div class="scanner-viewport-container">
+            <div id="reader"></div>
+          </div>
+
+          <div class="manual-token-input-card">
+            <h4>¿No puedes escanear el código?</h4>
+            <div class="input-inline">
+              <input type="text" id="manual-token-code" placeholder="Ej. 7KF2PX8A" maxlength="12" style="text-transform: uppercase;">
+              <button id="go-manual-token-btn" class="btn btn-secondary">
+                <i data-lucide="arrow-right"></i> Ir al Token
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. VIEW: QR GENERATOR & PRINT STUDIO -->
+      <section id="view-qr-generator" class="app-view hidden">
+        <div class="generator-container">
+          <div class="generator-header">
+            <h2><i data-lucide="printer"></i> Generador de Lotes e Impresión de QR</h2>
+            <p>Crea nuevos códigos QR físicos libres e imprímelos en pliegos de etiquetas adhesivas para pegar en los trabajos de fotocopiado e impresión.</p>
+          </div>
+
+          <div class="generator-card">
+            <h3>1. Generar Nuevos Tokens en la Base de Datos</h3>
+            <div class="form-row inline-form">
+              <div class="form-group">
+                <label for="batch-count-input">Cantidad de QRs a generar:</label>
+                <select id="batch-count-input" class="form-control">
+                  <option value="12">12 etiquetas (1 hoja)</option>
+                  <option value="24" selected>24 etiquetas (2 hojas)</option>
+                  <option value="48">48 etiquetas (4 hojas)</option>
+                  <option value="96">96 etiquetas (8 hojas)</option>
+                </select>
+              </div>
+
+              <button id="generate-batch-btn" class="btn btn-primary">
+                <i data-lucide="sparkles"></i> Generar Lote en BD
+              </button>
+            </div>
+          </div>
+
+          <div class="generator-card print-preview-section">
+            <div class="card-header-flex">
+              <div>
+                <h3>2. Pliego Imprimible de Etiquetas QR</h3>
+                <p>Previsualización de códigos listos para impresión física.</p>
+              </div>
+              <button id="print-sheet-btn" class="btn btn-emerald btn-lg">
+                <i data-lucide="printer"></i> Imprimir Pliego Ahora
+              </button>
+            </div>
+
+            <!-- Print Grid Container -->
+            <div id="printable-qr-grid" class="qr-print-grid">
+              <!-- Dynamically populated QR label cards -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. VIEW: CUSTOMERS DIRECTORY -->
+      <section id="view-customers" class="app-view hidden">
+        <div class="customers-controls">
+          <h2><i data-lucide="users"></i> Directorio de Clientes</h2>
+          <div class="search-input-wrapper">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="customer-search-input" placeholder="Buscar cliente por nombre o teléfono...">
+          </div>
+        </div>
+
+        <div id="customers-list" class="customers-grid">
+          <!-- Dynamically populated customer cards -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- MODAL: CREATE / EDIT JOB -->
+    <div id="job-modal" class="modal-overlay hidden">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3 id="job-modal-title"><i data-lucide="file-plus"></i> Crear Nuevo Trabajo</h3>
+          <button class="close-modal-btn">&times;</button>
+        </div>
+
+        <form id="job-form" class="modal-body">
+          <input type="hidden" id="form-job-id" value="">
+          <input type="hidden" id="form-token-code" value="">
+
+          <!-- Token info alert inside modal if created from token -->
+          <div id="modal-token-banner" class="alert-info hidden">
+            <i data-lucide="qr-code"></i> Vinculando a Token QR: <strong id="modal-token-tag">--------</strong>
+          </div>
+
+          <div class="form-section">
+            <h4>Datos del Cliente</h4>
+            <div class="form-row grid-2">
+              <div class="form-group">
+                <label for="job-customer-name">Nombre Completo del Cliente *</label>
+                <input type="text" id="job-customer-name" required placeholder="Ej: Juan Pérez / Empresa XYZ">
+              </div>
+              <div class="form-group">
+                <label for="job-customer-phone">Teléfono / WhatsApp *</label>
+                <input type="tel" id="job-customer-phone" required placeholder="Ej: 987654321">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Ítems del Trabajo (Servicios / Impresiones)</h4>
+            <div id="job-items-container" class="job-items-list">
+              <!-- Item rows added dynamically -->
+            </div>
+            <button type="button" id="add-item-row-btn" class="btn btn-secondary btn-sm mt-2">
+              <i data-lucide="plus"></i> Agregar Otro Ítem
+            </button>
+          </div>
+
+          <div class="form-section">
+            <div class="form-row grid-2">
+              <div class="form-group">
+                <label for="job-status">Estado Inicial</label>
+                <select id="job-status" class="form-control">
+                  <option value="received">RECIBIDO (Pendiente)</option>
+                  <option value="in_progress">EN PROCESO (Imprimiendo)</option>
+                  <option value="ready">LISTO (Para Recoger)</option>
+                  <option value="delivered">ENTREGADO (Finalizado)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="job-total-display">Total a Pagar (S/)</label>
+                <input type="number" id="job-total-display" readonly step="0.50" class="input-total" value="0.00">
+              </div>
+            </div>
+
+            <div class="form-group mt-2">
+              <label for="job-notes">Notas / Especificaciones Adicionales</label>
+              <textarea id="job-notes" rows="2" placeholder="Ej: Engargolado tapa azul, papel bond 80g, anillado grueso..."></textarea>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
+            <button type="submit" class="btn btn-primary">
+              <i data-lucide="save"></i> Guardar Trabajo
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: SUPABASE CONFIGURATION & AUTH -->
+    <div id="config-modal" class="modal-overlay hidden">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3><i data-lucide="settings"></i> Configuración de Supabase & Conexión</h3>
+          <button class="close-modal-btn">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="alert-info">
+            <i data-lucide="info"></i> Ingresa las credenciales de tu proyecto de Supabase para activar la sincronización en la nube y persistencia de datos.
+          </div>
+
+          <form id="config-form" class="mt-3">
+            <div class="form-group">
+              <label for="cfg-url">Supabase Project URL</label>
+              <input type="url" id="cfg-url" placeholder="https://xyz.supabase.co" required>
+            </div>
+
+            <div class="form-group mt-2">
+              <label for="cfg-key">Supabase Anon Public Key</label>
+              <input type="text" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required>
+            </div>
+
+            <div class="modal-footer mt-3">
+              <button type="button" id="use-demo-mode-btn" class="btn btn-secondary">
+                Usar Modo Demo Local
+              </button>
+              <button type="submit" class="btn btn-emerald">
+                Guardar y Conectar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: WHATSAPP NOTIFIER -->
+    <div id="whatsapp-modal" class="modal-overlay hidden">
+      <div class="modal-container modal-sm">
+        <div class="modal-header">
+          <h3><i data-lucide="message-square"></i> Enviar Mensaje por WhatsApp</h3>
+          <button class="close-modal-btn">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="wa-phone">Número de Celular:</label>
+            <input type="tel" id="wa-phone" class="form-control">
+          </div>
+
+          <div class="form-group mt-2">
+            <label for="wa-message">Previsualización del Mensaje:</label>
+            <textarea id="wa-message" rows="5" class="form-control"></textarea>
+          </div>
+
+          <div class="modal-footer mt-3">
+            <button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
+            <button type="button" id="send-wa-btn" class="btn btn-emerald">
+              <i data-lucide="send"></i> Abrir WhatsApp
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main Application Script -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Copiadora Grafiplot - Redireccionando...</title>
+  <script>
+    // GitHub Pages SPA Routing Fallback
+    // Redirige rutas como /t/7KF2PX8A a / manteniendo el token en la sesión o URL hash
+    (function() {
+      var l = window.location;
+      var pathSegments = l.pathname.split('/').filter(Boolean);
+      
+      // Buscar token si la ruta es /t/{token}
+      if (pathSegments.length >= 2 && pathSegments[0] === 't') {
+        var token = pathSegments[1];
+        sessionStorage.setItem('redirect_t', token);
+        l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + '/?t=' + encodeURIComponent(token));
+      } else {
+        sessionStorage.setItem('redirect_path', l.pathname + l.search + l.hash);
+        l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + '/');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div style="font-family: system-ui, sans-serif; display: grid; place-items: center; min-height: 100vh; background: #0f172a; color: #f8fafc; text-align: center;">
+    <div>
+      <h2 style="margin-bottom: 8px;">Redireccionando al sistema...</h2>
+      <p style="color: #94a3b8;">Por favor espera un momento.</p>
+    </div>
+  </div>
+</body>
+</html>
