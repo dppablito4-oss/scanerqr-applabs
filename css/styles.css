@@ -750,65 +750,85 @@ body {
 .qr-label-card {
   background: #ffffff;
   color: #000000;
-  border: 2px dashed #cbd5e1;
-  border-radius: var(--radius-sm);
-  padding: 12px;
+  border: 2px solid #0f172a;
+  border-radius: var(--radius-md);
+  padding: 12px 10px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .label-brand {
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: #0f172a;
-  margin-bottom: 6px;
+  text-transform: uppercase;
 }
 
-.qr-canvas-container canvas {
-  width: 100px !important;
-  height: 100px !important;
+.qr-code-wrapper {
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-img {
+  width: 105px;
+  height: 105px;
+  display: block;
+  object-fit: contain;
 }
 
 .label-token-code {
   font-family: var(--font-mono);
   font-weight: 800;
-  font-size: 1.1rem;
-  letter-spacing: 1px;
-  color: #042f2e;
-  margin-top: 4px;
+  font-size: 1.2rem;
+  letter-spacing: 1.5px;
+  color: #000000;
 }
 
 .label-sub {
-  font-size: 0.6rem;
-  color: #64748b;
-  margin-top: 2px;
+  font-size: 0.62rem;
+  color: #475569;
+  font-weight: 600;
 }
 
 /* Printable Mode override */
 @media print {
   body * {
-    visibility: hidden;
+    visibility: hidden !important;
   }
   #printable-qr-grid, #printable-qr-grid * {
-    visibility: visible;
+    visibility: visible !important;
   }
   #printable-qr-grid {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
-    gap: 12px !important;
+    gap: 10px !important;
     background: white !important;
     padding: 10px !important;
   }
   .qr-label-card {
-    page-break-inside: avoid;
-    border: 1px solid #000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    border: 2px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-radius: 8px !important;
+    padding: 8px !important;
+    box-shadow: none !important;
+  }
+  .qr-img {
+    width: 95px !important;
+    height: 95px !important;
   }
 }

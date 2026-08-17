@@ -1126,28 +1126,19 @@ function renderPrintableLabels(tokens) {
     const labelCard = document.createElement('div');
     labelCard.className = 'qr-label-card';
 
-    const qrUrl = `${window.location.origin}/t/${t.token}`;
+    const qrUrl = `https://scanerqrsales.grafiplotvasquez.lat/t/${t.token}`;
+    const qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0&data=${encodeURIComponent(qrUrl)}`;
 
     labelCard.innerHTML = `
       <div class="label-brand">COPIADORA GRAFIPLOT</div>
-      <div class="qr-canvas-container" id="qr-canvas-${t.token}"></div>
+      <div class="qr-code-wrapper">
+        <img class="qr-img" src="${qrImgSrc}" alt="QR ${t.token}" loading="eager" />
+      </div>
       <div class="label-token-code">${t.token}</div>
       <div class="label-sub">scanerqrsales.grafiplotvasquez.lat</div>
     `;
 
     grid.appendChild(labelCard);
-
-    // Render QR Code onto Canvas
-    setTimeout(() => {
-      const container = document.getElementById(`qr-canvas-${t.token}`);
-      if (container && window.QRCode) {
-        window.QRCode.toCanvas(qrUrl, { width: 110, margin: 1 }, function (err, canvas) {
-          if (!err) {
-            container.appendChild(canvas);
-          }
-        });
-      }
-    }, 50);
   });
 }
 
