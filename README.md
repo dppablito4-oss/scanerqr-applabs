@@ -2,6 +2,8 @@
 
 Aplicación Web Progresiva (SPA) moderna desarrollada para la gestión eficiente de trabajos de fotocopiado, impresión y engargolado mediante etiquetas con códigos QR físicos y sincronización en la nube con Supabase.
 
+> 🚀 **Última actualización de despliegue**: 2026-08-16
+
 ---
 
 ## 🌟 Características Principales
