@@ -2,9 +2,9 @@
 // CONFIGURACIÓN DE SUPABASE - COPIADORA GRAFIPLOT
 // ==============================================================================
 
-// Credenciales por defecto (Pueden actualizarse desde el Modal de Configuración en la App)
-const DEFAULT_SUPABASE_URL = "https://your-supabase-project.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY = "your-supabase-anon-key";
+// Credenciales por defecto de Supabase (Copiadora Grafiplot)
+const DEFAULT_SUPABASE_URL = "https://kahdnjjzzvliklxwlpse.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_88GyJuBlUZeIT5YlTbma1w_994h7mGd";
 
 // Claves en localStorage
 const STORAGE_KEY_URL = "grafiplot_supabase_url";
